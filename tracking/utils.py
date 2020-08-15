@@ -1,4 +1,4 @@
-from scipy.misc import imresize
+from PIL import Image
 import numpy as np
 
 def overlap_ratio(rect1, rect2):
@@ -61,6 +61,7 @@ def crop_image(img, bbox, img_size=107, padding=16, valid=False):
         cropped = 128 * np.ones((max_y-min_y, max_x-min_x, 3), dtype='uint8')
         cropped[min_y_val-min_y:max_y_val-min_y, min_x_val-min_x:max_x_val-min_x, :] \
             = img[min_y_val:max_y_val, min_x_val:max_x_val, :]
-    
-    scaled = imresize(cropped, (img_size, img_size))
+
+    scaled = np.array(Image.fromarray(cropped).resize((img_size, img_size)))
+    #scaled = imresize(cropped, (img_size, img_size))
     return scaled

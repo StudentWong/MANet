@@ -2,15 +2,21 @@ from collections import OrderedDict
 
 opts = OrderedDict()
 opts['use_gpu'] = True # if you change to False ,it will use CPU to run,but is very slow
-opts['model_path1'] = "../models/MANet-2IC.pth"
+opts['stage'] = 'IA'
+opts['model_path1'] = "logs/MA.pth"
 
 opts['img_size'] = 107
 opts['padding'] = 16
 
-opts['batch_pos'] = 32
-opts['batch_neg'] = 96
-opts['batch_neg_cand'] = 1024
-opts['batch_test'] = 256
+# opts['batch_pos'] = 32
+# opts['batch_neg'] = 96
+# opts['batch_neg_cand'] = 1024
+# opts['batch_test'] = 256
+opts['batch_pos'] = 8
+opts['batch_neg'] = 24
+opts['batch_neg_cand'] = 256
+opts['batch_test'] = 64
+
 
 opts['n_samples'] = 512
 
@@ -44,5 +50,6 @@ opts['long_interval'] = 10
 opts['w_decay'] = 0.0005
 opts['momentum'] = 0.9
 opts['grad_clip'] =10
-opts['lr_mult'] = {'fc6':10}   #test gtot use {'fc6':10,'fc4':5,'fc5':5}  ///  #test rgbt234 use {'fc6':10}
+#opts['lr_mult'] = {'fc6':10}   #test gtot use {'fc6':10,'fc4':5,'fc5':5}  ///  #test rgbt234 use {'fc6':10}
+opts['lr_mult'] = {'fc6':10,'fc4':5,'fc5':5}
 opts['ft_layers'] = ['fc']

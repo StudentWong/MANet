@@ -154,7 +154,7 @@ class MDNet(nn.Module):
 
         if model_path1 is not None:
             if os.path.splitext(model_path1)[1] == '.pth':
-                assert self.stage == 'MA', 'load module error'
+                assert self.stage == 'MA' or self.stage == 'IA', 'load module error'
                 self.load_model(model_path1)
             elif os.path.splitext(model_path1)[1] == '.mat':
                 assert self.stage == 'GA', 'load module error'
@@ -275,6 +275,9 @@ class MDNet(nn.Module):
         states = torch.load(model_path)
         shared_layers = states['shared_layers']
 
+        # print(shared_layers.keys())
+        # print(self.layers)
+        # exit()
         if self.stage == 'MA':
             conv1 = OrderedDict()
             conv1['0.weight'] = states['shared_layers']['conv1.0.weight']
@@ -292,9 +295,7 @@ class MDNet(nn.Module):
             self.layers.conv3.load_state_dict(conv3)
         elif self.stage == 'IA':
             self.layers.load_state_dict(shared_layers)
-        # print(shared_layers.keys())
-        # print(self.layers)
-        # exit()
+
 
         if self.stage == 'MA':
             pass
@@ -360,7 +361,7 @@ class Precision():
         #return prec.data[0]
         return prec.item()
 
-from pretrain.options_GA import opts as opts_GA
-from pretrain.options_MA import opts as opts_MA
+from options.options_GA import opts as opts_GA
+from options.options_MA import opts as opts_MA
 if __name__ == '__main__':
-    MDNet(opts_GA['stage'], opts_GA['init_model_path'], 1)
+    MDNet(opts_MA['stage'], opts_MA['init_model_path'], 1)

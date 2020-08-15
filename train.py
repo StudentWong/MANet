@@ -10,13 +10,14 @@ from torch.autograd import Variable
 
 from pretrain.data_prov import RegionDataset, RegionDataset1
 from modules.MANet3x1x1_IC import *
-from pretrain.options_GA import opts as optsGA
-from pretrain.options_MA import opts as optsMA
-from pretrain.options_IA import opts as optsIA
+from options.options_GA import opts as optsGA
+from options.options_MA import opts as optsMA
+from options.options_IA import opts as optsIA
 
 #********************************************set dataset path ********************************************
 #********************************************set seq list .pkl file path  ********************************
 img_home = "/home/studentw/disk3/tracker/RGB_T234/"
+# img_home = "/home/htz/ZYDL/RGB_T234/"
 data_path1 = 'DATA/rgbt234_V.pkl'
 data_path2 = 'DATA/rgbt234_I.pkl'
 #*********************************************************************************************************
