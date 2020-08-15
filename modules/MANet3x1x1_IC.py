@@ -22,7 +22,7 @@ except AttributeError:
 
 def append_params(params, module, prefix):
     for child in module.children():
-        for k,p in child._parameters.iteritems():
+        for k,p in child._parameters.items():
             if p is None: continue
             
             if isinstance(child, nn.BatchNorm2d):
@@ -56,9 +56,10 @@ class LRN(nn.Module):
 
 
 class MDNet(nn.Module):
-    def __init__(self, model_path1=None, K=1):
+    def __init__(self, stage, model_path1=None, K=1):
         super(MDNet, self).__init__()
         self.K = K
+        self.stage = stage
         #****************RGB_para****************
         self.RGB_para1_3x3=nn.Sequential(OrderedDict([
                                             ('Rconv1' ,nn.Sequential(nn.Conv2d(3,96,kernel_size=3,stride=2),
@@ -153,8 +154,10 @@ class MDNet(nn.Module):
 
         if model_path1 is not None:
             if os.path.splitext(model_path1)[1] == '.pth':
+                assert self.stage == 'MA', 'load module error'
                 self.load_model(model_path1)
             elif os.path.splitext(model_path1)[1] == '.mat':
+                assert self.stage == 'GA', 'load module error'
                 self.load_mat_model(model_path1)
             else:
                 raise RuntimeError("Unkown model format: %s" % (model_path1))
@@ -193,7 +196,7 @@ class MDNet(nn.Module):
             append_params(self.params, module, 'fc6_%d'%(k))
 
     def set_learnable_params(self, layers):
-        for k, p in self.params.iteritems():
+        for k, p in self.params.items():
             if any([k.startswith(l) for l in layers]):
                 p.requires_grad = True
             else:
@@ -201,7 +204,7 @@ class MDNet(nn.Module):
  
     def get_learnable_params(self):
         params = OrderedDict()
-        for k, p in self.params.iteritems():
+        for k, p in self.params.items():
             if p.requires_grad:
                 params[k] = p
         return params
@@ -271,29 +274,46 @@ class MDNet(nn.Module):
     def load_model(self, model_path):
         states = torch.load(model_path)
         shared_layers = states['shared_layers']
-        self.layers.load_state_dict(shared_layers)
 
-        
-        para1_layers=states['RGB_para1_3x3']
-        self.RGB_para1_3x3.load_state_dict(para1_layers,strict=True)
-        para2_layers=states['RGB_para2_1x1']
-        self.RGB_para2_1x1.load_state_dict(para2_layers,strict=True)
-        para3_layers=states['RGB_para3_1x1']
-        self.RGB_para3_1x1.load_state_dict(para3_layers,strict=True)
+        if self.stage == 'MA':
+            conv1 = OrderedDict()
+            conv1['0.weight'] = states['shared_layers']['conv1.0.weight']
+            conv1['0.bias'] = states['shared_layers']['conv1.0.bias']
+            self.layers.conv1.load_state_dict(conv1)
 
-        
-        para1_layers=states['T_para1_3x3']
-        self.T_para1_3x3.load_state_dict(para1_layers,strict=True)
-        para2_layers=states['T_para2_1x1']
-        self.T_para2_1x1.load_state_dict(para2_layers,strict=True)
-        para3_layers=states['T_para3_1x1']
-        self.T_para3_1x1.load_state_dict(para3_layers,strict=True)
+            conv2 = OrderedDict()
+            conv2['0.weight'] = states['shared_layers']['conv2.0.weight']
+            conv2['0.bias'] = states['shared_layers']['conv2.0.bias']
+            self.layers.conv2.load_state_dict(conv2)
 
-       
-        
-        print('load finish pth!!!')
-        
-        
+            conv3 = OrderedDict()
+            conv3['0.weight'] = states['shared_layers']['conv3.0.weight']
+            conv3['0.bias'] = states['shared_layers']['conv3.0.bias']
+            self.layers.conv3.load_state_dict(conv3)
+        elif self.stage == 'IA':
+            self.layers.load_state_dict(shared_layers)
+        # print(shared_layers.keys())
+        # print(self.layers)
+        # exit()
+
+        if self.stage == 'MA':
+            pass
+        elif self.stage == 'IA':
+            para1_layers = states['RGB_para1_3x3']
+            self.RGB_para1_3x3.load_state_dict(para1_layers, strict=True)
+            para2_layers = states['RGB_para2_1x1']
+            self.RGB_para2_1x1.load_state_dict(para2_layers, strict=True)
+            para3_layers = states['RGB_para3_1x1']
+            self.RGB_para3_1x1.load_state_dict(para3_layers, strict=True)
+
+            para1_layers = states['T_para1_3x3']
+            self.T_para1_3x3.load_state_dict(para1_layers, strict=True)
+            para2_layers = states['T_para2_1x1']
+            self.T_para2_1x1.load_state_dict(para2_layers, strict=True)
+            para3_layers = states['T_para3_1x1']
+            self.T_para3_1x1.load_state_dict(para3_layers, strict=True)
+
+        print('load pth finish!')
 
     def load_mat_model(self, matfile):
         mat = scipy.io.loadmat(matfile)
@@ -337,5 +357,10 @@ class Precision():
         scores = torch.cat((pos_score[:,1], neg_score[:,1]), 0)
         topk = torch.topk(scores, pos_score.size(0))[1]
         prec = (topk < pos_score.size(0)).float().sum() / (pos_score.size(0)+1e-8)
-        
-        return prec.data[0]
+        #return prec.data[0]
+        return prec.item()
+
+from pretrain.options_GA import opts as opts_GA
+from pretrain.options_MA import opts as opts_MA
+if __name__ == '__main__':
+    MDNet(opts_GA['stage'], opts_GA['init_model_path'], 1)

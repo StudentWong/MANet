@@ -13,12 +13,12 @@ import torch.optim as optim
 from torch.autograd import Variable
 
 sys.path.insert(0,'../modules')
-from sample_generator import *
-from data_prov import *
-from MANet3x1x1_IC import *
-from bbreg import *
-from options import *
-from gen_config import *
+from modules.sample_generator import *
+from tracking.data_prov import *
+from modules.MANet3x1x1_IC import *
+from tracking.bbreg import *
+from tracking.options import *
+from tracking.gen_config import *
 
 
 def forward_samples(model, image1,image2, samples, out_layer='conv3'):
@@ -309,11 +309,11 @@ def run_mdnet(img_list1,img_list2, init_bbox, gt=None, savefig_dir='', display=F
                 fig.savefig(os.path.join(savefig_dir,'%04d.jpg'%(i)),dpi=dpi)
 
         if gt is None:
-            print "Frame %d/%d, Score %.3f, Time %.3f" % \
-                (i, len(img_list1), target_score, spf)
+            print("Frame %d/%d, Score %.3f, Time %.3f" % \
+                (i, len(img_list1), target_score, spf))
         else:
-            print "Frame %d/%d, Overlap %.3f, Score %.3f, Time %.3f" % \
-                (i, len(img_list1), overlap_ratio(gt[i],result_bb[i])[0], target_score, spf)
+            print("Frame %d/%d, Overlap %.3f, Score %.3f, Time %.3f" % \
+                (i, len(img_list1), overlap_ratio(gt[i],result_bb[i])[0], target_score, spf))
 
     fps = len(img_list1) / spf_total
     return result, result_bb, fps

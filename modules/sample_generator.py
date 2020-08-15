@@ -1,7 +1,7 @@
 import numpy as np
 from PIL import Image
 
-from utils import *
+from modules.utils import *
 
 def gen_samples(generator, bbox, n, overlap_range=None, scale_range=None):
     
@@ -64,14 +64,17 @@ class SampleGenerator():
             samples[:,:2] += self.trans_f * np.mean(bb[2:]) * np.clip(0.5*np.random.randn(n,2),-1,1)
             samples[:,2:] *= self.scale_f ** np.clip(0.5*np.random.randn(n,1),-1,1)
 
+        # 在自身bbox的wh范围内最多移动一个身子
         elif self.type=='uniform':
             samples[:,:2] += self.trans_f * np.mean(bb[2:]) * (np.random.rand(n,2)*2-1)
             samples[:,2:] *= self.scale_f ** (np.random.rand(n,1)*2-1)
-        
+
+        # 根据n的数量对xy中心画网格随机采样，打乱后取前nge
         elif self.type=='whole':
             m = int(2*np.sqrt(n))
             xy = np.dstack(np.meshgrid(np.linspace(0,1,m),np.linspace(0,1,m))).reshape(-1,2)
             xy = np.random.permutation(xy)[:n]
+
             samples[:,:2] = bb[2:]/2 + xy * (self.img_size-bb[2:]/2-1)
             #samples[:,:2] = bb[2:]/2 + np.random.rand(n,2) * (self.img_size-bb[2:]/2-1)
             samples[:,2:] *= self.scale_f ** (np.random.rand(n,1)*2-1)
@@ -93,4 +96,9 @@ class SampleGenerator():
     
     def get_trans_f(self):
         return self.trans_f
+
+if __name__ == '__main__':
+    test = SampleGenerator('uniform', (640, 512), trans_f=1, aspect_f=None)
+    a = test([100, 150, 30, 20], 10)
+    print(a)
 

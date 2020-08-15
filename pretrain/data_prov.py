@@ -5,10 +5,10 @@ from PIL import Image
 
 import torch
 import torch.utils.data as data
+from modules.sample_generator import *
+from modules.utils import *
+sys.path.insert(0, '../modules')
 
-sys.path.insert(0,'../modules')
-from sample_generator import *
-from utils import *
 
 class RegionDataset(data.Dataset):
     def __init__(self, img_dir, img_list, gt, opts):
@@ -39,6 +39,8 @@ class RegionDataset(data.Dataset):
     def __next__(self):
         next_pointer = min(self.pointer + self.batch_frames, len(self.img_list))
         idx = self.index[self.pointer:next_pointer]
+        # 如果next做到视频序列的末尾, 凑不满batch_frames，则随机缺几个补上,
+        # 并且next_pointer循环
         if len(idx) < self.batch_frames:
             self.index = np.random.permutation(len(self.img_list))
             next_pointer = self.batch_frames - len(idx)
@@ -53,6 +55,7 @@ class RegionDataset(data.Dataset):
 
             n_pos = (self.batch_pos - len(pos_regions)) // (self.batch_frames - i)
             n_neg = (self.batch_neg - len(neg_regions)) // (self.batch_frames - i)
+            # print((self.batch_pos - len(pos_regions)))
             pos_examples = gen_samples(self.pos_generator, bbox, n_pos, overlap_range=self.overlap_pos)
             neg_examples = gen_samples(self.neg_generator, bbox, n_neg, overlap_range=self.overlap_neg)
             
@@ -61,7 +64,7 @@ class RegionDataset(data.Dataset):
 
         pos_regions = torch.from_numpy(pos_regions).float()
         neg_regions = torch.from_numpy(neg_regions).float()
-        return pos_regions, neg_regions,pos_examples,neg_examples,idx
+        return pos_regions, neg_regions, pos_examples, neg_examples,idx
     next = __next__
 
     def extract_regions(self, image, samples):
@@ -145,3 +148,29 @@ class RegionDataset1(data.Dataset):
         regions = regions.transpose(0,3,1,2)
         regions = regions.astype('float32') - 128.
         return regions
+
+
+# import pickle
+# import cv2
+# if __name__ == '__main__':
+#     with open('DATA/rgbt234_V.pkl', 'rb') as fp1:
+#         data1 = pickle.load(fp1)
+#     for k, (seqname, seq) in enumerate(sorted(data1.items())):
+#         img_list1 = seq['images']
+#         gt1 = seq['gt']
+#         img_dir1 = os.path.join("/home/studentw/disk3/tracker/RGB_T234/", seqname)
+#         dataset1 = RegionDataset(img_dir1, img_list1, gt1, opts)
+#         pos_regions, neg_regions, pos_examples, neg_examples, idx = dataset1.next()
+#
+#         # pos_regions = np.array(pos_regions) + np.ones_like(np.array(pos_regions)) * 128
+#         # # print(pos_regions.shape)
+#         # for img_i in range(0, pos_regions.shape[0]):
+#         #     # print(pos_regions[img_i].transpose(1, 2, 0))
+#         #     cv2.imshow('1', pos_regions[img_i].transpose(1, 2, 0).astype(np.uint8))
+#         #     cv2.waitKey(0)
+#
+#         # print(neg_regions)
+#         # print(pos_examples)
+#         # print(len(neg_examples))
+#         # print(idx)
+#         exit()

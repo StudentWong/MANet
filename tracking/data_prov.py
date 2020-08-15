@@ -5,7 +5,7 @@ from PIL import Image
 import torch
 import torch.utils.data as data
 
-from utils import *
+from modules.utils import *
 
 
 class RegionExtractor():
