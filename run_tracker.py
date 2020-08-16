@@ -25,8 +25,10 @@ dataset = "GTOT"
 
 
 if dataset == "GTOT":
-    data_dir = "/home/studentw/disk3/tracker/GTOT/"  # set tracking dataset path
-    res_dir = '/home/studentw/disk3/tracker/MANet_GTOT_result'  # you need creat result dirpath
+#    data_dir = "/home/studentw/disk3/tracker/GTOT/"  # set tracking dataset path
+#    res_dir = '/home/studentw/disk3/tracker/MANet_GTOT_result'  # you need creat result dirpath
+    data_dir = "/home/htz/ZYDL/GTOT"  # set tracking dataset     path
+    res_dir = '/home/htz/ZYDL/MANet_GTOT_result'  # you need creat result dirpath
     seq_list = 'gtot.txt'
     infrared_img_dir = 'i'
     visible_img_dir = 'v'

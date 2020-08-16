@@ -8,14 +8,14 @@ opts['model_path1'] = "logs/MA.pth"
 opts['img_size'] = 107
 opts['padding'] = 16
 
-# opts['batch_pos'] = 32
-# opts['batch_neg'] = 96
-# opts['batch_neg_cand'] = 1024
-# opts['batch_test'] = 256
-opts['batch_pos'] = 8
-opts['batch_neg'] = 24
-opts['batch_neg_cand'] = 256
-opts['batch_test'] = 64
+opts['batch_pos'] = 32
+opts['batch_neg'] = 96
+opts['batch_neg_cand'] = 1024
+opts['batch_test'] = 256
+#opts['batch_pos'] = 8
+#opts['batch_neg'] = 24
+#opts['batch_neg_cand'] = 256
+#opts['batch_test'] = 64
 
 
 opts['n_samples'] = 512
