@@ -67,7 +67,7 @@ class MDNet(nn.Module):
                                                         nn.ReLU(),
                                                         nn.BatchNorm2d(96),
                                                         nn.Dropout(0.5),
-                                                       # LRN(),
+                                                        LRN(),
                                                         nn.MaxPool2d(kernel_size=5,stride=2)
                                             )) ]))
         
@@ -77,7 +77,7 @@ class MDNet(nn.Module):
                                                        nn.ReLU(),
                                                        nn.BatchNorm2d(256),
                                                        nn.Dropout(0.5),
-                                                       #LRN(),
+                                                       LRN(),
                                                        nn.MaxPool2d(kernel_size=5,stride=2))
                                             
                                             ) ]))
@@ -88,7 +88,7 @@ class MDNet(nn.Module):
                                                       nn.ReLU(),
                                                       nn.BatchNorm2d(512),
                                                       nn.Dropout(0.5),
-                                                      #LRN()
+                                                      LRN()
                                                         )
                                             
                                             )]))
@@ -102,7 +102,7 @@ class MDNet(nn.Module):
                                                         nn.ReLU(),
                                                         nn.BatchNorm2d(96),
                                                         nn.Dropout(0.5),
-                                                        #LRN(),
+                                                        LRN(),
                                                         nn.MaxPool2d(kernel_size=5,stride=2))
                                             ) ]))
         
@@ -112,7 +112,7 @@ class MDNet(nn.Module):
                                                        nn.ReLU(),
                                                        nn.BatchNorm2d(256),
                                                        nn.Dropout(0.5),
-                                                       #LRN(),
+                                                       LRN(),
                                                        nn.MaxPool2d(kernel_size=5,stride=2))
                                             
                                             ) ]))
@@ -123,7 +123,7 @@ class MDNet(nn.Module):
                                                       nn.ReLU(),
                                                       nn.BatchNorm2d(512),
                                                       nn.Dropout(0.5),
-                                                      #LRN()
+                                                      LRN()
                                                       )  
                                             
                                             )]))

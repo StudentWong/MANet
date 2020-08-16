@@ -22,27 +22,10 @@ from tracking.gen_config import *
 sys.path.insert(0, '../modules')
 dataset = "GTOT"
 # dataset = "RGB_T234"
+# home_dir = '/home/studentw/disk3/tracker'
+home_dir = '/home/htz/ZYDL/'
 
 
-if dataset == "GTOT":
-#    data_dir = "/home/studentw/disk3/tracker/GTOT/"  # set tracking dataset path
-#    res_dir = '/home/studentw/disk3/tracker/MANet_GTOT_result'  # you need creat result dirpath
-    data_dir = "/home/htz/ZYDL/GTOT"  # set tracking dataset     path
-    res_dir = '/home/htz/ZYDL/MANet_GTOT_result'  # you need creat result dirpath
-    seq_list = 'gtot.txt'
-    infrared_img_dir = 'i'
-    visible_img_dir = 'v'
-    gt_txt = 'init.txt'
-elif dataset == "RGB_T234":
-    data_dir = "/home/studentw/disk3/tracker/RGB_T234/"  # set tracking dataset path
-    res_dir = '/home/studentw/disk3/tracker/MANet_RGB_T234_result'  # you need creat result dirpath
-    seq_list = 'rgbt234.txt'
-    infrared_img_dir = 'infrared'
-    visible_img_dir = 'visible'
-    gt_txt = 'init.txt'
-
-if not os.path.exists(res_dir):
-    os.mkdir(res_dir)
 
 def forward_samples(model, image1, image2, samples, out_layer='conv3'):
     model.eval()
@@ -376,9 +359,41 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--display', action='store_true')
     parser.add_argument('-s', '--seq', default='', help='input seq')
+    parser.add_argument('-w', '--weight', type=str, default='logs/MA.pth',
+                        help='Load weight')
+    parser.add_argument('-r', '--result', type=str, default='MANet_RGB_T234_result',
+                        help='Result dir')
+    parser.add_argument('--seed', type=int, default=1,
+                        help='Manual seed')
     args = parser.parse_args()
     seq = args.seq
+    opts['model_path1'] = args.weight
 
+    if dataset == "GTOT":
+        # data_dir = "/home/studentw/disk3/tracker/GTOT/"  # set tracking dataset path
+        # res_dir = '/home/studentw/disk3/tracker/MANet_GTOT_result'  # you need creat result dirpath
+        # data_dir = "/home/htz/ZYDL/GTOT"  # set tracking dataset     path
+        # res_dir = '/home/htz/ZYDL/MANet_GTOT_result'  # you need creat result dirpath
+        data_dir = os.path.join(home_dir, 'GTOT')
+        res_dir = os.path.join(home_dir, args.result)
+        seq_list = 'gtot.txt'
+        infrared_img_dir = 'i'
+        visible_img_dir = 'v'
+        gt_txt = 'init.txt'
+    elif dataset == "RGB_T234":
+        # data_dir = "/home/studentw/disk3/tracker/RGB_T234/"  # set tracking dataset path
+        # res_dir = '/home/studentw/disk3/tracker/MANet_RGB_T234_result'  # you need creat result dirpath
+        # data_dir = "/home/htz/ZYDL/RGB_T234"  # set tracking dataset     path
+        # res_dir = '/home/htz/ZYDL/MANet_RGB_T234_result'  # you need creat result dirpath
+        data_dir = os.path.join(home_dir, 'RGB_T234')
+        res_dir = os.path.join(home_dir, args.result)
+        seq_list = 'rgbt234.txt'
+        infrared_img_dir = 'infrared'
+        visible_img_dir = 'visible'
+        gt_txt = 'init.txt'
+
+    if not os.path.exists(res_dir):
+        os.mkdir(res_dir)
     tracker_name = 'result'
 
     list_path = os.path.join(data_dir, seq_list)
@@ -398,9 +413,9 @@ if __name__ == "__main__":
         seq = seqs[i]
         print(i, seq)
         if 'MANet311-2IC_' + seq + '.txt' not in os.listdir(res_dir):
-            np.random.seed(123)
-            torch.manual_seed(456)
-            torch.cuda.manual_seed(789)
+            np.random.seed(args.seed)
+            torch.manual_seed(args.seed*2)
+            torch.cuda.manual_seed(args.seed*3)
             # print(data_dir)
             # print(seq)
             # exit()

@@ -16,10 +16,10 @@ from options.options_IA import opts as optsIA
 
 #********************************************set dataset path ********************************************
 #********************************************set seq list .pkl file path  ********************************
-img_home = "/home/studentw/disk3/tracker/RGB_T234/"
-# img_home = "/home/htz/ZYDL/RGB_T234/"
+# img_home = "/home/studentw/disk3/tracker/RGB_T234/"
+img_home = "/home/htz/ZYDL/RGB_T234/"
 data_path1 = 'DATA/rgbt234_V.pkl'
-data_path2 = 'DATA/rgbt234_I.pkl'
+# data_path2 = 'DATA/rgbt234_I.pkl'
 #*********************************************************************************************************
 
 
@@ -151,8 +151,19 @@ def train_mdnet(opts):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser('Yet Another EfficientDet Pytorch: SOTA object detection network - Zylo117')
+    parser.add_argument('-w', '--weight', type=str, default='weights/imagenet-vgg-m.mat',
+                        help='Load weight')
+    parser.add_argument('-o', '--output', type=str, default='logs/GA.pth',
+                        help='Output weight')
     parser.add_argument('-s', '--stage', type=str, default='GA',
                         help='Train stage. Select within \'GA\', \'MA\', \'IA\'')
+    parser.add_argument('-I', '--I_Data', type=str, default='rgbt234_I.pkl',
+                        help='I_Data. Select within \'rgbt234_I.pkl\', \'rgbt234_I2.pkl\'')
+    parser.add_argument('-wd', '--weight_decay', type=float, default=0.0005,
+                        help='Weight decay')
+    parser.add_argument('--seed', type=int, default=1,
+                        help='Manual seed')
+
     args = parser.parse_args()
     assert args.stage=='GA' or args.stage=='MA' or args.stage=='IA', 'Please select stage within \'GA\', \'MA\', \'IA\''
     if args.stage == 'GA':
@@ -161,4 +172,14 @@ if __name__ == "__main__":
         train_opt = optsMA
     elif args.stage == 'IA':
         train_opt = optsIA
+
+    data_path2 = 'DATA/' + args.I_Data
+    train_opt['init_model_path'] = args.weight
+    train_opt['model_path'] = args.output
+    train_opt['w_decay'] = args.weight_decay
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed * 2)
+    torch.cuda.manual_seed(args.seed * 3)
     train_mdnet(train_opt)
+
+    torch.cuda.empty_cache()

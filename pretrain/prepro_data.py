@@ -8,14 +8,14 @@ from collections import OrderedDict
 
 seq_home='/home/studentw/disk3/tracker/RGB_T234/'#
 seqlist_path='/home/studentw/disk3/tracker/RGB_T234/rgbt234.txt'#
-output_path='/home/studentw/disk3/tracker/MANet/DATA/rgbt234_V.pkl'#
+output_path='/home/studentw/disk3/tracker/MANet/DATA/rgbt234_I2.pkl'#
 if not os.path.exists(output_path):
     os.mknod(output_path)
 
 visible='/visible'
 infrared='/infrared'
 
-gt_path='/init.txt'
+gt_path='/infrared.txt'
 
 if __name__ == '__main__':
     with open(seqlist_path,'r') as fp:
@@ -23,8 +23,8 @@ if __name__ == '__main__':
 
     data = {}
     for i,seq in enumerate(seq_list):
-        # seq=seq+infrared
-        seq=seq+visible
+        seq=seq+infrared
+        # seq=seq+visible
         img_list = sorted([p for p in os.listdir(seq_home+seq) if os.path.splitext(p)[1] == '.jpg'])
         (filepath,tempfilename)=os.path.split(seq)
         gt = np.loadtxt(seq_home+filepath+gt_path,delimiter=',')
