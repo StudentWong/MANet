@@ -3,4 +3,5 @@ logs/
 weights/
 .idea/
 track.log
+multi.log
 !.gitignore
