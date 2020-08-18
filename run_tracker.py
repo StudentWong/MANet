@@ -22,8 +22,8 @@ from tracking.gen_config import *
 sys.path.insert(0, '../modules')
 dataset = "GTOT"
 # dataset = "RGB_T234"
-# home_dir = '/home/studentw/disk3/tracker'
-home_dir = '/home/htz/ZYDL/'
+home_dir = '/home/studentw/disk3/tracker'
+# home_dir = '/home/htz/ZYDL/'
 
 
 
@@ -39,6 +39,9 @@ def forward_samples(model, image1, image2, samples, out_layer='conv3'):
                 if opts['use_gpu']:
                     regions1 = regions1.cuda()
                     regions2 = regions2.cuda()
+                # print(regions1.shape)
+                # print(regions2.shape)
+                # exit()
                 feat = model(regions1, regions2, out_layer=out_layer)
                 if i == 0:
                     feats = feat.data.clone()
