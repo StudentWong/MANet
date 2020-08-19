@@ -51,19 +51,16 @@ def train_mdnet(opts):
     # print(sorted(data1.items())[0])
     # exit()
     for k, (seqname, seq) in enumerate(sorted(data1.items())):
-        # print(seqname)
         img_list1 = seq['images']
         gt1 = seq['gt']
         img_dir1 = os.path.join(img_home, seqname)
         dataset1[k] = RegionDataset(img_dir1, img_list1, gt1, opts)
-        # print(dataset1[k])
-        # exit()
-
 
     with open(data_path2,'rb') as fp2:
         data2=pickle.load(fp2)
 
     K2=len(data2)
+#    print(K2)
     dataset2=[None]*K2
     for k, (seqname, seq) in enumerate(sorted(data2.items())):
         # print(seqname)
@@ -72,6 +69,8 @@ def train_mdnet(opts):
         img_list2 = seq['images']
         gt2 = seq['gt']
         img_dir2 = os.path.join(img_home, seqname)
+#print(pos_regions.shape)
+#print(pos_examples.shape)
         dataset2[k] = RegionDataset1(img_dir2, img_list2, gt2, pos_regions, neg_regions,
                                      pos_examples, neg_examples, idx, opts)
 
@@ -94,6 +93,8 @@ def train_mdnet(opts):
         k_list = np.random.permutation(K1)
         prec = np.zeros(K1)
         for j,k in enumerate(k_list):
+# if k != 154:
+# continue
             tic = time.time()
             pos_regions1, neg_regions1,pos_examples1,neg_examples1,idx1,pos_regions2, neg_regions2,pos_examples2,neg_examples2,idx2 = dataset2[k].next1()
             
@@ -108,10 +109,10 @@ def train_mdnet(opts):
                 neg_regions1 = neg_regions1.cuda()
                 pos_regions2 = pos_regions2.cuda()
                 neg_regions2 = neg_regions2.cuda()
-        
+            
             pos_score = model(pos_regions1,pos_regions2 ,k)
             neg_score = model(neg_regions1,neg_regions2, k)
-
+            
             loss = criterion(pos_score, neg_score)
             model.zero_grad()
             loss.backward()

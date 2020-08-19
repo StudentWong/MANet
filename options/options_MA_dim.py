@@ -28,5 +28,5 @@ opts['w_decay'] = 0.0005
 opts['momentum'] = 0.9
 opts['grad_clip'] = 10
 opts['ft_layers'] = ['fc', 'R', 'T', 'conv', 'dim']
-opts['lr_mult'] = {'fc': 5, 'R': 1, 'T': 1, 'conv': 1, 'dim': 300}
+opts['lr_mult'] = {'fc': 5, 'R': 1, 'T': 1, 'conv': 1, 'dim': 30000}
 

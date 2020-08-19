@@ -56,9 +56,14 @@ class RegionDataset(data.Dataset):
             n_pos = (self.batch_pos - len(pos_regions)) // (self.batch_frames - i)
             n_neg = (self.batch_neg - len(neg_regions)) // (self.batch_frames - i)
             # print((self.batch_pos - len(pos_regions)))
+            
             pos_examples = gen_samples(self.pos_generator, bbox, n_pos, overlap_range=self.overlap_pos)
             neg_examples = gen_samples(self.neg_generator, bbox, n_neg, overlap_range=self.overlap_neg)
             
+#print(bbox)
+#           print(pos_examples.shape)
+#            print(self.overlap_pos)
+#            print(n_pos)
             pos_regions = np.concatenate((pos_regions, self.extract_regions(image, pos_examples)),axis=0)
             neg_regions = np.concatenate((neg_regions, self.extract_regions(image, neg_examples)),axis=0)
 
@@ -129,6 +134,11 @@ class RegionDataset1(data.Dataset):
             
             pos_regions2 = np.concatenate((pos_regions2, self.extract_regions(image, pos_examples1)),axis=0)
             neg_regions2 = np.concatenate((neg_regions2, self.extract_regions(image, neg_examples1)),axis=0)
+            
+        #print(pos_regions1.shape)
+        #print(neg_regions1.shape)
+        #print(pos_regions2.shape)
+        #print(neg_regions2.shape)
 
         pos_examples1 = torch.from_numpy(pos_examples1).float()
         neg_examples1 = torch.from_numpy(neg_examples1).float()

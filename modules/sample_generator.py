@@ -4,7 +4,15 @@ from PIL import Image
 from modules.utils import *
 
 def gen_samples(generator, bbox, n, overlap_range=None, scale_range=None):
-    
+    if bbox[0] < 0.0:
+        bbox[0] = 0.0
+    if bbox[1] < 0.0:
+        bbox[1] = 0.0
+    if bbox[0]+bbox[2] > generator.img_size[0]:
+        bbox[2] = generator.img_size[0] - bbox[0]
+    if bbox[1]+bbox[3] > generator.img_size[1]:
+        bbox[3] = generator.img_size[1] - bbox[1]
+        
     if overlap_range is None and scale_range is None:
         return generator(bbox, n)
     
@@ -14,16 +22,20 @@ def gen_samples(generator, bbox, n, overlap_range=None, scale_range=None):
         factor = 2
         while remain > 0 and factor < 16:
             samples_ = generator(bbox, remain*factor)
-
+#            print("hidden")
+#print(samples_.shape)
+#            print(bbox)
+#            print(samples_)
             idx = np.ones(len(samples_), dtype=bool)
             if overlap_range is not None:
-            
+                
                 r = overlap_ratio(samples_, bbox)
+#                print(r)
                 idx *= (r >= overlap_range[0]) * (r <= overlap_range[1])
             if scale_range is not None:
                 s = np.prod(samples_[:,2:], axis=1) / np.prod(bbox[2:])
                 idx *= (s >= scale_range[0]) * (s <= scale_range[1])
-            
+#                print(idx)
             samples_ = samples_[idx,:]
             samples_ = samples_[:min(remain, len(samples_))]
             if samples is None:
@@ -32,7 +44,14 @@ def gen_samples(generator, bbox, n, overlap_range=None, scale_range=None):
                 samples = np.concatenate([samples, samples_])
             remain = n - len(samples)
             factor = factor*2
-        
+#        print('out')
+#        print(samples.shape)
+#        if samples.shape[0] == 0:
+#            ind = []
+
+#            for indx in range (0, n):
+#                ind = ind + [np.argmax(r)]
+#            print(ind)
         return samples
 
 
@@ -49,11 +68,19 @@ class SampleGenerator():
         #
         # bb: target bbox (min_x,min_y,w,h)
         bb = np.array(bb, dtype='float32')
-
+#        if bb[0] < 0.0:
+#            bb[0] = 0.0
+#        if bb[1] < 0.0:
+#            bb[1] = 0.0
+#        if bb[0]+bb[2] > self.img_size[0]:
+#            bb[2] = self.img_size[0] - bb[0]
+#        if bb[1]+bb[3] > self.img_size[1]:
+#            bb[3] = self.img_size[1] - bb[1]
+#        print(bb)
         # (center_x, center_y, w, h)
         sample = np.array([bb[0]+bb[2]/2, bb[1]+bb[3]/2, bb[2], bb[3]], dtype='float32')
         samples = np.tile(sample[None,:],(n,1))
-
+#        print(samples)
         # vary aspect ratio
         if self.aspect_f is not None:
             ratio = np.random.rand(n,1)*2-1
@@ -80,7 +107,7 @@ class SampleGenerator():
             samples[:,2:] *= self.scale_f ** (np.random.rand(n,1)*2-1)
 
         # adjust bbox range
-        samples[:,2:] = np.clip(samples[:,2:], 10, self.img_size-10)
+        samples[:,2:] = np.clip(samples[:,2:], 3, self.img_size-3)
         if self.valid:
             samples[:,:2] = np.clip(samples[:,:2], samples[:,2:]/2, self.img_size-samples[:,2:]/2-1)
         else:

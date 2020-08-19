@@ -294,6 +294,7 @@ class MDNet(nn.Module):
             if run:
                 # print(name)
                 if name == 'conv1':
+                    
                     feat_T = self.T_para1_3x3(xT)
                     feat_R = self.RGB_para1_3x3(xR)
                     VGG_T = self.T_VGG1(xT)
