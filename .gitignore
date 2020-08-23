@@ -1,6 +1,7 @@
 logs/
 */__pycache__
 weights/
+work/
 .idea/
 track.log
 multi.log
