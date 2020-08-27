@@ -17,7 +17,8 @@ import time
 parser = argparse.ArgumentParser(description='Training DCFNet in Pytorch 0.4.0')
 parser.add_argument('--input_sz', dest='input_sz', default=125, type=int, help='crop input size')
 parser.add_argument('--padding', dest='padding', default=2.0, type=float, help='crop padding size')
-parser.add_argument('--range', dest='range', default=10, type=int, help='select range')
+parser.add_argument('--train_data', default='rgbt234', type=str, help='train data')
+parser.add_argument('--val_data', default='gtot', type=str, help='val data')
 parser.add_argument('--epochs', default=50, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
@@ -28,20 +29,42 @@ parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
                     help='number of data loading workers (default: 8)')
 parser.add_argument('-b', '--batch-size', default=2, type=int,
                     metavar='N', help='mini-batch size (default: 32)')
-parser.add_argument('--lr', '--learning-rate', default=0.01, type=float,
-                    metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
-parser.add_argument('--weight-decay', '--wd', default=5e-5, type=float,
+parser.add_argument('--weight_decay', '--wd', default=5e-4, type=float,
                     metavar='W', help='weight decay (default: 5e-5)')
 parser.add_argument('--resume', default='', type=str, metavar='PATH', help='path to latest checkpoint (default: none)')
 parser.add_argument('--save', '-s', default='./work', type=str, help='directory for saving')
+parser.add_argument('--layer', default=2, type=int, help='layer num')
 
 args = parser.parse_args()
 
 print(args)
-best_loss = 1e6
+config = TrackerConfig()
+assert args.layer == 2 or args.layer == 3, 'invalid layer'
+assert args.train_data=='gtot' or args.train_data=='rgbt234', 'invalid train data'
+assert args.val_data=='gtot' or args.val_data=='rgbt234', 'invalid val data'
 
+config.layer = args.layer
+config.train_data = args.train_data
+config.val_data = args.val_data
+if config.train_data == 'rgbt234':
+    config.train_file = config.rgbt234_file
+    config.train_root = config.rgbt234_root
+elif config.train_data == 'gtot':
+    config.train_file = config.gtot_file
+    config.train_root = config.gtot_root
+
+if config.val_data == 'rgbt234':
+    config.val_file = config.rgbt234_file
+    config.val_root = config.rgbt234_root
+elif config.val_data == 'gtot':
+    config.val_file = config.gtot_file
+    config.val_root = config.gtot_root
+
+
+best_loss = 1e6
+config.w_decay = args.weight_decay
 
 # def gaussian_shaped_labels(sigma, sz):
 #     x, y = np.meshgrid(np.arange(1, sz[0]+1) - np.floor(float(sz[0]) / 2), np.arange(1, sz[1]+1) - np.floor(float(sz[1]) / 2))
@@ -66,7 +89,6 @@ best_loss = 1e6
 #     # cos_window = torch.Tensor(np.outer(np.hanning(crop_sz), np.hanning(crop_sz))).cuda()  # train without cos window
 
 
-config = TrackerConfig()
 
 model = DCFNet(config=config)
 model.cuda()
@@ -112,16 +134,16 @@ if not isdir(save_path):
     makedirs(save_path)
 
 
-train_dataset = VID(file=config.file, root=config.root, padding=config.padding, fixsize=config.crop_sz)
-# val_dataset = VID(root=crop_base_path, train=False, range=args.range)
+train_dataset = VID(file=config.train_file, root=config.train_root, data=config.train_data, padding=config.padding, fixsize=config.crop_sz)
+val_dataset = VID(file=config.val_file, root=config.val_root, data=config.val_data, padding=config.padding, fixsize=config.crop_sz)
 # print(len(train_dataset))
 train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size*gpu_num, shuffle=True,
         num_workers=args.workers, pin_memory=True, drop_last=True)
 # print(len(train_loader))
-# val_loader = torch.utils.data.DataLoader(
-#         val_dataset, batch_size=args.batch_size*gpu_num, shuffle=False,
-#         num_workers=args.workers, pin_memory=True, drop_last=True)
+val_loader = torch.utils.data.DataLoader(
+        val_dataset, batch_size=args.batch_size*gpu_num, shuffle=False,
+        num_workers=args.workers, pin_memory=True, drop_last=True)
 
 
 # def adjust_learning_rate(optimizer, epoch):
@@ -201,56 +223,61 @@ def train(train_loader, model, criterion, optimizer, epoch):
     return losses
 
 
-# def validate(val_loader, model, criterion):
-#     batch_time = AverageMeter()
-#     losses = AverageMeter()
-#
-#     # switch to evaluate mode
-#     model.eval()
-#
-#     with torch.no_grad():
-#         end = time.time()
-#         for i, (template, search) in enumerate(val_loader):
-#
-#             # compute output
-#             template = template.cuda(non_blocking=True)
-#             search = search.cuda(non_blocking=True)
-#
-#             # compute output
-#             output = model(template, search)
-#             loss = criterion(output, target)/(args.batch_size * gpu_num)
-#
-#             # measure accuracy and record loss
-#             losses.update(loss.item())
-#
-#             # measure elapsed time
-#             batch_time.update(time.time() - end)
-#             end = time.time()
-#
-#             if i % args.print_freq == 0:
-#                 print('Test: [{0}/{1}]\t'
-#                       'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
-#                       'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
-#                        i, len(val_loader), batch_time=batch_time, loss=losses))
-#
-#         print(' * Loss {loss.val:.4f} ({loss.avg:.4f})'.format(loss=losses))
-#
-#     return losses.avg
+def validate(val_loader, model, criterion):
+    batch_time = AverageMeter()
+    losses = AverageMeter()
+
+    # switch to evaluate mode
+    model.eval()
+
+    with torch.no_grad():
+        end = time.time()
+        for i, (tr, ti, sr, si, res) in enumerate(val_loader):
+
+            # compute output
+            tr = tr.cuda(non_blocking=True)
+            ti = ti.cuda(non_blocking=True)
+            sr = sr.cuda(non_blocking=True)
+            si = si.cuda(non_blocking=True)
+            res = res.cuda(non_blocking=True)
+
+            # compute output
+            # output = model(template, search)
+            # loss = criterion(output, target)/(args.batch_size * gpu_num)
+            output = model(tr, ti, sr, si)
+            loss = criterion(output, res) / tr.size(0)  # criterion = nn.MSEloss
+
+            # measure accuracy and record loss
+            losses.update(loss.item())
+
+            # measure elapsed time
+            batch_time.update(time.time() - end)
+            end = time.time()
+
+            if i % args.print_freq == 0:
+                print('Test: [{0}/{1}]\t'
+                      'Time {batch_time.val:.3f} ({batch_time.avg:.3f})\t'
+                      'Loss {loss.val:.4f} ({loss.avg:.4f})\t'.format(
+                       i, len(val_loader), batch_time=batch_time, loss=losses))
+
+        print(' * Loss {loss.val:.4f} ({loss.avg:.4f})'.format(loss=losses))
+
+    return losses
 
 
 for epoch in range(args.start_epoch, args.epochs):
     # adjust_learning_rate(optimizer, epoch)
 
     # train for one epoch
-    loss = train(train_loader, model, criterion, optimizer, epoch)
+    train(train_loader, model, criterion, optimizer, epoch)
 
-    print("avg_loss:{:f}".format(loss.avg))
+    # print("avg_loss:{:f}".format(loss.avg))
     # evaluate on validation set
-    # loss = validate(val_loader, model, criterion)
+    losses = validate(val_loader, model, criterion)
     #
     # # remember best loss and save checkpoint
-    is_best = loss.avg < best_loss
-    best_loss = min(best_loss, loss.avg)
+    is_best = losses.avg < best_loss
+    best_loss = min(best_loss, losses.avg)
     save_checkpoint({
         'epoch': epoch + 1,
         'state_dict': model.state_dict(),

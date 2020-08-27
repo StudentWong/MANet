@@ -4,24 +4,27 @@ import torch
 class TrackerConfig(object):
     # These are the default hyper-params for DCFNet
     # OTB2013 / AUC(0.665)
-
     train_data = 'RGBT234'
     val_data = 'GTOT'
 
-    # feature_path = '/home/studentw/disk3/tracker/MANet/weights/imagenet-vgg-m.mat'
     # rgbt234_file = '/home/studentw/disk3/tracker/RGB_T234/rgbt234.txt'
     # rgbt234_root = '/home/studentw/disk3/tracker/RGB_T234/'
     #
     # gtot_file = '/home/studentw/disk3/tracker/GTOT/gtot.txt'
     # gtot_root = '/home/studentw/disk3/tracker/GTOT'
     #
-    #
-    feature_path = '/home/htz/ZYDL/MANet/weights/imagenet-vgg-m.mat'
+    # result_path_root = '/home/studentw/disk3/tracker'
+    # root = '/home/studentw/disk3/tracker/MANet'
+
+
     rgbt234_file = '/home/htz/ZYDL/RGB_T234/rgbt234.txt'
     rgbt234_root = '/home/htz/ZYDL/RGB_T234/'
     #
     gtot_file = '/home/htz/ZYDL/GTOT/gtot.txt'
     gtot_root = '/home/htz/ZYDL/GTOT'
+    #
+    result_path_root = '/home/htz/ZYDL'
+    root = '/home/htz/ZYDL/MANet'
 
     crop_sz = 125
     layer = 2
@@ -31,15 +34,15 @@ class TrackerConfig(object):
     momentum = 0.9
     grad_clip = 10
     ft_layers = ['share', 'R', 'T', 'fusion']
-    lr_mult = {'share': 1, 'R': 1, 'T': 1, 'fusion': 8}
+    lr_mult = {'share': 1, 'R': 1, 'T': 1, 'fusion': 10}
 
     lambda0 = 1e-4
     padding = 2
     output_sigma_factor = 0.1
-    interp_factor = 0.01
+    interp_factor = 0.005
     num_scale = 3
     #num_scale = 5
-    scale_step = 1.0275
+    scale_step = 1.08
     #scale_step = 1.3
     scale_factor = scale_step ** (np.arange(num_scale) - num_scale / 2)
     #scale_factor = scale_step ** (np.arange(num_scale) - int(num_scale / 2))

@@ -13,7 +13,7 @@ import numpy as np
 class VID(data.Dataset):
     def __init__(self, file='/home/studentw/disk3/tracker/RGB_T234/rgbt234.txt',
                  root='/home/studentw/disk3/tracker/RGB_T234/',
-                 range=20, data='rgbt234', padding=2, fixsize=125,
+                 range=20, data='RGBT234', padding=2, fixsize=125,
                  output_sigma=4.167, flip=True, bias=False):
         self.dataset = data
         self.padding = padding
@@ -25,17 +25,10 @@ class VID(data.Dataset):
         with open(file, 'r') as fp_txt:
             self.sequences = fp_txt.readlines()
 
-        if self.dataset == 'rgbt234':
+        if self.dataset == 'RGBT234':
             self.gt_name = 'init.txt'
             self.infrared_folder = 'infrared'
             self.rgb_folder = 'visible'
-            self.split_separator = ','
-
-        elif self.dataset == 'gtot':
-            self.gt_name = 'init.txt'
-            self.infrared_folder = 'i'
-            self.rgb_folder = 'v'
-            self.split_separator = '\t'
 
         self.seqs_inf = dict()
         for i, seq_name in enumerate(self.sequences):
@@ -82,8 +75,8 @@ class VID(data.Dataset):
         template_gt_str = seq_inf['gt_str'][temp_id][:-1] if seq_inf['gt_str'][temp_id].endswith('\n') else seq_inf['gt_str'][temp_id]
         search_gt_str = seq_inf['gt_str'][search_id][:-1] if seq_inf['gt_str'][search_id].endswith('\n') else seq_inf['gt_str'][search_id]
 
-        template_gt_str_split = template_gt_str.split(self.split_separator)
-        search_gt_str_split = search_gt_str.split(self.split_separator)
+        template_gt_str_split = template_gt_str.split(',')
+        search_gt_str_split = search_gt_str.split(',')
 
 
         template_gt_cwh = [int(template_gt_str_split[0])+int(template_gt_str_split[2])/2, int(template_gt_str_split[1])+int(template_gt_str_split[3])/2,
@@ -115,11 +108,8 @@ class VID(data.Dataset):
 
         # print(search_rgb_region.shape)
         # cv2.imshow("1", search_rgb_region.transpose((1, 2, 0)))
-        # cv2.waitKey(0)
         # cv2.imshow("2", search_infrared_region.transpose((1, 2, 0)))
-        # cv2.waitKey(0)
         # cv2.imshow("3", template_rgb_region.transpose((1, 2, 0)))
-        # cv2.waitKey(0)
         # cv2.imshow("4", template_infrared_region.transpose((1, 2, 0)))
         # cv2.waitKey(0)
         # print(template_gt)
@@ -154,11 +144,9 @@ class VID(data.Dataset):
                 template_rgb_region = np.flip(template_rgb_region, 2)
                 template_infrared_region = np.flip(template_infrared_region, 2)
 
-        res = util.gaussian_shaped_labels(self.output_sigma, [self.fixsize, self.fixsize]).astype(np.float32)
-
         return template_rgb_region.astype(np.float32), template_infrared_region.astype(np.float32), \
                search_rgb_region.astype(np.float32), search_infrared_region.astype(np.float32), \
-               np.expand_dims(res, axis=0)
+               util.gaussian_shaped_labels(self.output_sigma, [self.fixsize, self.fixsize]).astype(np.float32)
     #print(y.shape)
 
 
@@ -167,23 +155,18 @@ class VID(data.Dataset):
         return self.len
 
 if __name__ == '__main__':
+    data = VID()
 
-    val_data = 'GTOT'
-    val_file = '/home/studentw/disk3/tracker/GTOT/gtot.txt'
-    val_root = '/home/studentw/disk3/tracker/GTOT'
-    data = VID(val_file, val_root, data=val_data)
-    # data = VID()
 
     for i in range(0, len(data)):
         sr, si, tr, ti, res = data[i]
-
-        cv2.imshow("1", sr.transpose((1, 2, 0)).astype(np.uint8))
+        cv2.imshow("1", sr.transpose((1, 2, 0)))
         cv2.waitKey(0)
-        cv2.imshow("1", si.transpose((1, 2, 0)).astype(np.uint8))
+        cv2.imshow("1", si.transpose((1, 2, 0)))
         cv2.waitKey(0)
-        cv2.imshow("1", tr.transpose((1, 2, 0)).astype(np.uint8))
+        cv2.imshow("1", tr.transpose((1, 2, 0)))
         cv2.waitKey(0)
-        cv2.imshow("1", ti.transpose((1, 2, 0)).astype(np.uint8))
+        cv2.imshow("1", ti.transpose((1, 2, 0)))
         cv2.waitKey(0)
         # print(sr.shape)
         # print(si.shape)
